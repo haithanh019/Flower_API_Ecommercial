@@ -1,0 +1,90 @@
+﻿@page
+@model Client.Pages.Cart.IndexModel
+@{
+    ViewData["Title"] = "Giỏ hàng";
+    Layout = "/Pages/Shared/_Layout.cshtml";
+}
+<div class="container py-4 cart-page">
+    <div class="d-flex align-items-center mb-3">
+        <h2 class="mb-0">Giỏ hàng</h2>
+        <a class="btn btn-light border ms-auto" href="/Shop">Tiếp tục mua sắm</a>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger">@Model.ErrorMessage</div>
+    }
+    @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+    {
+        <div class="alert alert-success">@Model.SuccessMessage</div>
+    }
+
+    @if (Model.Items.Count == 0)
+    {
+        <div class="alert alert-info">Giỏ hàng trống.</div>
+    }
+    else
+    {
+        <div class="card shadow-sm">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Sản phẩm</th>
+                            <th class="text-end" style="width:140px">Đơn giá</th>
+                            <th class="text-end" style="width:160px">Số lượng</th>
+                            <th class="text-end" style="width:160px">Thành tiền</th>
+                            <th class="text-end" style="width:100px"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var it in Model.Items)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img src="@(!string.IsNullOrWhiteSpace(it.ImageUrl) ? it.ImageUrl : "/img/no-image.png")"
+                                             style="width:48px;height:48px;object-fit:cover" class="rounded border" />
+                                        <div>
+                                            <div class="fw-semibold">@it.ProductName</div>
+                                            <div class="small text-muted">@Model.CategoryName(it.CategoryId)</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-end">@it.UnitPrice.ToString("#,0") ₫</td>
+                                <td class="text-end">
+                                    <form method="post" asp-page-handler="UpdateQty" class="d-inline">
+                                        <input type="hidden" name="productId" value="@it.ProductId" />
+                                        <div class="input-group input-group-sm justify-content-end" style="max-width:160px;margin-left:auto">
+                                            <button class="btn btn-outline-secondary" name="qty" value="@(it.Quantity - 1)">-</button>
+                                            <input class="form-control text-end" name="qty" value="@it.Quantity" />
+                                            <button class="btn btn-outline-secondary" name="qty" value="@(it.Quantity + 1)">+</button>
+                                        </div>
+                                    </form>
+                                </td>
+                                <td class="text-end">@((it.UnitPrice * it.Quantity).ToString("#,0")) ₫</td>
+                                <td class="text-end">
+                                    <form method="post" asp-page-handler="Remove" class="d-inline">
+                                        <input type="hidden" name="productId" value="@it.ProductId" />
+                                        <button class="btn btn-sm btn-outline-danger">Xoá</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card-footer d-flex justify-content-between align-items-center">
+                <form method="post" asp-page-handler="Clear">
+                    <button class="btn btn-outline-secondary">Xoá tất cả</button>
+                </form>
+                <div class="h5 mb-0">Tổng cộng: <strong>@Model.Total.ToString("#,0") ₫</strong></div>
+            </div>
+        </div>
+
+        <div class="text-end mt-3">
+            <a class="btn btn-primary" href="/Orders/Checkout?mode=cart">Tiến hành thanh toán</a>
+        </div>
+    }
+</div>

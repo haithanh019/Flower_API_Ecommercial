@@ -1,0 +1,13 @@
+﻿@page
+@model Client.Pages.Account.LogoutModel
+@{
+    ViewData["Title"] = "Logout";
+}
+<form method="post" class="d-none"></form>
+<div class="container py-5 text-center">
+    <h2>Đang đăng xuất...</h2>
+    <p class="text-secondary">Bạn sẽ được chuyển về trang chủ.</p>
+</div>
+@section Scripts {
+    <script>document.forms[0].submit();</script>
+}

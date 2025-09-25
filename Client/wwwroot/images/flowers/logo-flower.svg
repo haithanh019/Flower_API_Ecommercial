@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Flower logo">
+  <defs>
+    <linearGradient id="petalPink" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FF7AB6"/>
+      <stop offset="100%" stop-color="#FF3D7F"/>
+    </linearGradient>
+    <linearGradient id="petalBlue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#8ED8FF"/>
+      <stop offset="100%" stop-color="#3A7BFF"/>
+    </linearGradient>
+    <radialGradient id="center" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#FFE082"/>
+      <stop offset="100%" stop-color="#FFA000"/>
+    </radialGradient>
+    <path id="petalInner" d="M128 40 C154 40 178 82 128 120 C78 82 102 40 128 40 Z"/>
+    <path id="petalOuter" d="M128 22 C168 22 202 82 128 134 C54 82 88 22 128 22 Z"/>
+  </defs>
+
+  <!-- Outer ring -->
+  <g fill="url(#petalBlue)" opacity="0.65">
+    <use href="#petalOuter" transform="rotate(0 128 128)"/>
+    <use href="#petalOuter" transform="rotate(45 128 128)"/>
+    <use href="#petalOuter" transform="rotate(90 128 128)"/>
+    <use href="#petalOuter" transform="rotate(135 128 128)"/>
+    <use href="#petalOuter" transform="rotate(180 128 128)"/>
+    <use href="#petalOuter" transform="rotate(225 128 128)"/>
+    <use href="#petalOuter" transform="rotate(270 128 128)"/>
+    <use href="#petalOuter" transform="rotate(315 128 128)"/>
+  </g>
+
+  <!-- Inner ring -->
+  <g fill="url(#petalPink)">
+    <use href="#petalInner" transform="rotate(22.5 128 128)"/>
+    <use href="#petalInner" transform="rotate(67.5 128 128)"/>
+    <use href="#petalInner" transform="rotate(112.5 128 128)"/>
+    <use href="#petalInner" transform="rotate(157.5 128 128)"/>
+    <use href="#petalInner" transform="rotate(202.5 128 128)"/>
+    <use href="#petalInner" transform="rotate(247.5 128 128)"/>
+    <use href="#petalInner" transform="rotate(292.5 128 128)"/>
+    <use href="#petalInner" transform="rotate(337.5 128 128)"/>
+  </g>
+
+  <!-- Center -->
+  <circle cx="128" cy="128" r="22" fill="url(#center)"/>
+</svg>

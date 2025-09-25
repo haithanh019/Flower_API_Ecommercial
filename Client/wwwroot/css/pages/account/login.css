@@ -1,0 +1,43 @@
+﻿:root {
+    --flower-pink: #f7c7d9;
+    --flower-rose: #e04b7b;
+    --flower-green: #2e7d63;
+}
+
+.auth-bg {
+    min-height: 100vh;
+    background: linear-gradient(120deg, rgba(240,248,245,.85), rgba(255,240,245,.85)), url('/images/flowers/hero.jpg');
+}
+
+.flower-card {
+    backdrop-filter: blur(6px);
+    background: rgba(255,255,255,.85);
+    border: 1px solid rgba(255,255,255,.6);
+}
+
+.brand-badge {
+    display: inline-block;
+    padding: .35rem .75rem;
+    border-radius: 999px;
+    background: var(--flower-pink);
+    color: #7d1b3d;
+    font-weight: 600;
+    font-size: .85rem;
+}
+
+.btn-flower {
+    background: var(--flower-rose);
+    border-color: var(--flower-rose);
+}
+
+    .btn-flower:hover {
+        filter: brightness(.95);
+    }
+
+.link-flower {
+    color: var(--flower-green);
+}
+
+    .link-flower:hover {
+        color: #215748;
+    }

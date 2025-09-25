@@ -1,0 +1,392 @@
+﻿@page
+@model Client.Pages.Products.IndexModel
+@{
+    ViewData["Title"] = "Products";
+    Layout = "/Pages/Shared/_Layout.cshtml";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/product/index.css" asp-append-version="true" />
+}
+
+
+<div class="container py-4 products-page">
+    <div class="d-flex align-items-center mb-3">
+        <h2 class="mb-0">Products</h2>
+        @if (Model.CanManage)
+        {
+            <button class="btn btn-primary ms-auto" data-bs-toggle="modal" data-bs-target="#createModal">
+                + Thêm sản phẩm
+            </button>
+        }
+    </div>
+
+    <div id="pageAlert"></div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger">@Model.ErrorMessage</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(Model.SuccessMessage))
+    {
+        <div class="alert alert-success">@Model.SuccessMessage</div>
+    }
+
+    <form method="get" class="row g-2 mb-3">
+        <div class="col-md-4">
+            <input name="q" value="@Model.Q" class="form-control" placeholder="Tìm theo tên..." />
+        </div>
+
+        <div class="col-md-3">
+            <select name="categoryId" class="form-select">
+                <!-- NEW: nạp động -->
+                <option value="" selected="@(Model.CategoryId is null)">— Tất cả danh mục —</option>
+                @foreach (var c in Model.Categories)
+                {
+                    <option value="@c.Id" selected="@(Model.CategoryId == c.Id)">@c.Name</option>
+                }
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <select name="pageSize" class="form-select">
+                <option value="10" selected="@(Model.PageSize == 10)">10</option>
+                <option value="20" selected="@(Model.PageSize == 20)">20</option>
+                <option value="50" selected="@(Model.PageSize == 50)">50</option>
+            </select>
+        </div>
+
+        <div class="col-md-3 d-flex">
+            <button type="submit" class="btn btn-primary px-4">Lọc</button>
+            <a href="/Products" class="btn btn-outline-danger ms-2 px-4">Reset</a>
+        </div>
+    </form>
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-striped align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>STT</th>
+                        <th>Ảnh</th>
+                        <th>Tên</th>
+                        <th class="text-end">Giá</th>
+                        <th class="text-end">Kho</th><!-- NEW -->
+                        <th>Danh mục</th>
+                        <th>Trạng thái</th>
+                        <th class="text-end">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Items.Count == 0)
+                    {
+                        <tr><td colspan="7" class="text-center py-4 text-muted">Không có dữ liệu</td></tr>
+                    }
+                    else
+                    {
+
+@for (var i = 0; i < Model.Items.Count; i++)
+{
+    var p = Model.Items[i];
+    <tr>
+        <td>@((Model.PageIndex - 1) * Model.PageSize + i + 1)</td>
+        <td style="width:64px">
+            @if (!string.IsNullOrWhiteSpace(p.ImageUrl))
+            {
+                <img src="@p.ImageUrl" alt="@p.ProductName"
+                     class="img-thumbnail" style="width:56px;height:56px;object-fit:cover" />
+            }
+        </td>
+
+        <td>
+            <a href="/Products/Details?id=@p.ProductId">@p.ProductName</a><br />
+            <small class="text-muted">@p.Description</small>
+        </td>
+        <td class="text-end">@p.Price.ToString("#,0")</td>
+        <td class="text-end">@p.StockQuantity</td>
+        <td>@Model.CategoryName(p.CategoryId)</td>
+        <td>
+            @if (p.IsActive)
+            {
+                <span class="badge bg-success">Hoạt động</span>
+            }
+            else
+            {
+                <span class="badge bg-secondary">Đã Tắt</span>
+            }
+        </td>
+        <td class="text-end">
+            @if (Model.CanManage)
+            {
+                <button type="button" class="btn btn-sm btn-outline-primary"
+                        data-bs-toggle="modal" data-bs-target="#editModal-@p.ProductId">
+                    Sửa
+                </button>
+
+                <form method="post"
+                      asp-page-handler="Delete"
+                      asp-antiforgery="true"
+                      class="d-inline delete-form"
+                      data-id="@p.ProductId">
+                    <input type="hidden" name="productId" value="@p.ProductId" />
+                    <input type="hidden" name="q" value="@Model.Q" />
+                    <input type="hidden" name="categoryId" value="@Model.CategoryId" />
+                    <input type="hidden" name="pg" value="@Model.PageIndex" />
+                    <button type="button" class="btn btn-sm btn-outline-danger btn-delete"
+                            data-name="@p.ProductName">Xoá</button>
+                </form>
+            }
+        </td>
+    </tr>
+}
+                    }
+
+                </tbody>
+            </table>
+        </div>
+        <!-- Confirm Delete Modal -->
+        <div class="products-page modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title" id="confirmDeleteTitle">Xoá sản phẩm</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="mb-0">
+                            Bạn chắc chắn muốn xoá <strong id="delName"></strong>
+                            <span id="delId" hidden></span>
+                        </p>
+                        <small class="text-muted">Hành động này không thể hoàn tác.</small>
+                        <div class="alert alert-warning d-none mt-3" id="delError"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Huỷ</button>
+                        <button type="button" class="btn btn-danger" id="btnConfirmDelete">
+                            <span class="spinner-border spinner-border-sm me-2 d-none" id="delSpinner" role="status" aria-hidden="true"></span>
+                            Xoá
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @if (Model.TotalPages > 1)
+        {
+            <div class="card-footer">
+                <nav aria-label="pagination">
+                    <ul class="pagination mb-0">
+                        <li class="page-item @(Model.PageIndex <= 1 ? "disabled" : "")">
+                            <a class="page-link" href="?q=@Model.Q&categoryId=@Model.CategoryId&pg=@(Model.PageIndex - 1)&pageSize=@Model.PageSize">Prev</a>
+                        </li>
+                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                                <a class="page-link" href="?q=@Model.Q&categoryId=@Model.CategoryId&pg=@i&pageSize=@Model.PageSize">@i</a>
+                            </li>
+                        }
+                        <li class="page-item @(Model.PageIndex >= Model.TotalPages ? "disabled" : "")">
+                            <a class="page-link" href="?q=@Model.Q&categoryId=@Model.CategoryId&pg=@(Model.PageIndex + 1)&pageSize=@Model.PageSize">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        }
+
+    </div>
+</div>
+
+@if (Model.CanManage)
+{
+    <!-- CREATE MODAL -->
+    <div class="products-page modal fade @(Model.ShowCreateModal ? "show" : "")" id="createModal" tabindex="-1" aria-hidden="true" style="@(Model.ShowCreateModal ? "display:block;" : "display:none;")">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Thêm sản phẩm</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="createForm" method="post" asp-page-handler="Create" asp-antiforgery="true" data-ajax="true">
+                    <div class="modal-body vstack gap-3">
+                        <div class="text-danger" asp-validation-summary="ModelOnly"></div>
+                        <div class="alert alert-danger d-none js-error"></div>
+
+                        <input type="hidden" name="q" value="@Model.Q" />
+                        <input type="hidden" name="categoryId" value="@Model.CategoryId" /><!-- NEW -->
+                        <input type="hidden" name="pg" value="@Model.PageIndex" />
+
+                        <div class="form-floating">
+                            <input class="form-control" asp-for="NewProduct.ProductName" placeholder="Tên sản phẩm" />
+                            <label asp-for="NewProduct.ProductName"></label>
+                            <span class="text-danger" asp-validation-for="NewProduct.ProductName"></span>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input class="form-control" asp-for="NewProduct.Price" type="number" step="0.01" min="0" placeholder="Giá" />
+                                    <label asp-for="NewProduct.Price"></label>
+                                    <span class="text-danger" asp-validation-for="NewProduct.Price"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <!-- NEW: StockQuantity -->
+                                <div class="form-floating">
+                                    <input class="form-control" asp-for="NewProduct.StockQuantity" type="number" step="1" min="0" placeholder="Kho" />
+                                    <label asp-for="NewProduct.StockQuantity"></label>
+                                    <span class="text-danger" asp-validation-for="NewProduct.StockQuantity"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-floating">
+                            <!-- NEW: CategoryId -->
+                            <select class="form-select" asp-for="NewProduct.CategoryId">
+                                @foreach (var c in Model.Categories)
+                                {
+                                    <option value="@c.Id">@c.Name</option>
+                                }
+                            </select>
+                            <label asp-for="NewProduct.CategoryId">Danh mục</label>
+                            <span class="text-danger" asp-validation-for="NewProduct.CategoryId"></span>
+                        </div>
+
+                        <div class="form-floating">
+                            <!-- MULTI Upload + preview -->
+                            <div class="mb-3">
+                                <div class="dnd-multi border rounded p-3 text-center"
+                                     data-hidden="createGalleryJson"
+                                     data-gallery="createGallery"
+                                     data-max ="4">
+                                    <div class="small text-muted">Kéo nhiều ảnh vào đây hoặc nhấn để chọn</div>
+                                    <input type="file" accept="image/*" class="d-none dnd-file" multiple />
+                                </div>
+
+                                <div id="createGallery"
+                                     class="thumbs-grid row row-cols-2 row-cols-md-3 row-cols-lg-4 g-2 mt-2"></div>
+
+                                <input type="hidden" id="createGalleryJson" name="NewProduct_GalleryJson" />
+                                <small class="text-muted">Hỗ trợ jpg/png/webp, tối đa 5MB/ảnh.</small>
+                            </div>
+                        </div>
+
+                        <div class="form-floating">
+                            <textarea class="form-control" style="height:120px" asp-for="NewProduct.Description" placeholder="Mô tả"></textarea>
+                            <label asp-for="NewProduct.Description"></label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Huỷ</button>
+                        <button class="btn btn-primary">Thêm</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@* EDIT MODALS *@
+@foreach (var p in Model.Items)
+{
+    <div class="products-page modal fade" id="editModal-@p.ProductId" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Sửa sản phẩm #@p.ProductId</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="post" asp-page-handler="Update" asp-antiforgery="true" class="edit-form" data-id="@p.ProductId">
+                    <div class="modal-body vstack gap-3">
+                        <div class="alert alert-danger d-none js-error"></div>
+
+                        <input type="hidden" name="productId" value="@p.ProductId" />
+                        <input type="hidden" name="q" value="@Model.Q" />
+                        <input type="hidden" name="categoryId" value="@Model.CategoryId" /><!-- NEW -->
+                        <input type="hidden" name="pg" value="@Model.PageIndex" />
+
+                        <div class="form-floating">
+                            <input class="form-control" name="EditProduct.ProductName" id="Edit-Name-@p.ProductId" value="@p.ProductName" placeholder="Tên" />
+                            <label for="Edit-Name-@p.ProductId">Tên sản phẩm</label>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input class="form-control" type="number" step="0.01" min="0"
+                                           name="EditProduct.Price" id="Edit-Price-@p.ProductId"
+                                           value="@p.Price.ToString(System.Globalization.CultureInfo.InvariantCulture)" placeholder="Giá" />
+                                    <label for="Edit-Price-@p.ProductId">Giá</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <!-- NEW -->
+                                <div class="form-floating">
+                                    <input class="form-control" type="number" step="1" min="0"
+                                           name="EditProduct.StockQuantity" id="Edit-Stock-@p.ProductId" value="@p.StockQuantity" placeholder="Kho" />
+                                    <label for="Edit-Stock-@p.ProductId">Kho</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-floating">
+                            <!-- NEW -->
+                            <select class="form-select" name="EditProduct.CategoryId" id="Edit-Cat-@p.ProductId">
+                                @foreach (var c in Model.Categories)
+                                {
+                                    <option value="@c.Id" selected="@(p.CategoryId == c.Id)">@c.Name</option>
+                                }
+                            </select>
+                            <label for="Edit-Cat-@p.ProductId">Danh mục</label>
+                        </div>
+
+                        <div class="form-floating">
+                            <input type="hidden" id="editGalleryJson-@p.ProductId" name="EditProduct_GalleryJson" />
+                            <div class="mb-3">
+                                <input type="hidden" id="editGalleryJson-@p.ProductId" name="EditProduct_GalleryJson" />
+                                <div class="dnd-multi border rounded p-3 text-center"
+                                     data-hidden="editGalleryJson-@p.ProductId"
+                                     data-gallery="editGallery-@p.ProductId"
+                                     data-init='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(p.ImageUrls ?? new List<string>()))'
+                                     data-max="4">
+                                    <div class="small text-muted">Kéo nhiều ảnh hoặc nhấn để chọn</div>
+                                    <input type="file" accept="image/*" class="d-none dnd-file" multiple />
+                                </div>
+
+                                <div id="editGallery-@p.ProductId"
+                                     class="thumbs-grid row row-cols-2 row-cols-md-3 row-cols-lg-4 g-2 mt-2"></div>
+
+                                <small class="text-muted">Hỗ trợ jpg/png/webp, tối đa 4/5MB/ảnh.</small>
+                            </div>
+                        </div>
+
+                        <div class="form-floating">
+                            <textarea class="form-control" style="height:120px" name="EditProduct.Description" id="Edit-Desc-@p.ProductId" placeholder="Mô tả">@p.Description</textarea>
+                            <label for="Edit-Desc-@p.ProductId">Mô tả</label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="EditProduct.IsActive" id="Edit-Active-@p.ProductId" value="true" @(p.IsActive ? "checked" : null) />
+                            <input type="hidden" name="EditProduct.IsActive" value="false" />
+                            <label class="form-check-label" for="Edit-Active-@p.ProductId">Kích hoạt</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Huỷ</button>
+                        <button class="btn btn-primary">Lưu thay đổi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/product-index.js" asp-append-version="true"></script>
+    <script>
+        @if (Model.ShowCreateModal)
+        {
+                        <text>
+                        const el = document.getElementById('createModal');
+                        if (window.bootstrap && el) new bootstrap.Modal(el).show();
+                        </text>
+        }
+    </script>
+}

@@ -1,0 +1,64 @@
+﻿    @page
+    @{
+        ViewData["Title"] = "Order Details";
+        Layout = "/Pages/Shared/_Layout.cshtml";
+    }
+    <div class="container py-4">
+        <div class="d-flex align-items-center mb-3">
+            <h2 class="mb-0">Chi tiết đơn #@Request.Query["id"]</h2>
+            <a class="btn btn-light border ms-auto" href="/Orders">Quay lại</a>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h6 class="text-muted">Thông tin đơn</h6>
+                        <dl class="row mb-0">
+                            <dt class="col-sm-4">Khách hàng</dt>
+                            <dd class="col-sm-8" id="o-customer">—</dd>
+                            <dt class="col-sm-4">Ngày đặt</dt>
+                            <dd class="col-sm-8" id="o-date">—</dd>
+                            <dt class="col-sm-4">Địa chỉ</dt>
+                            <dd class="col-sm-8" id="o-address">—</dd>
+                            <dt class="col-sm-4">Thanh toán</dt>
+                            <dd class="col-sm-8" id="o-pay">—</dd>
+                            <dt class="col-sm-4">Trạng thái</dt>
+                            <dd class="col-sm-8" id="o-status"><span class="badge bg-secondary">—</span></dd>
+                            <dt class="col-sm-4">Tổng</dt>
+                            <dd class="col-sm-8" id="o-total">—</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h6 class="text-muted">Ghi chú</h6>
+                        <p class="mb-0 text-muted">—</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mt-3">
+            <div class="card-header"><strong>Items</strong></div>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Product</th>
+                            <th class="text-end">Qty</th>
+                            <th class="text-end">Unit Price</th>
+                            <th class="text-end">Line Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @* TODO: bind danh sách item *@
+                        <tr><td>—</td><td class="text-end">—</td><td class="text-end">—</td><td class="text-end">—</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>

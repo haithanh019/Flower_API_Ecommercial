@@ -1,0 +1,125 @@
+﻿@{
+    var full = (ViewData["FullWidth"] as bool?) ?? false;
+}
+@{
+    var isAuth = (User?.Identity?.IsAuthenticated ?? false) || (Context.Session.GetInt32("UserId") != null);
+    var displayName = User?.Identity?.Name ?? Context.Session.GetString("UserEmail") ?? "Tài khoản";
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Flower Shop</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/theme-flower.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Client.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/font-awesome/css/all.min.css" />
+
+    <script src="https://kit.fontawesome.com/538900c98c.js" crossorigin="anonymous"></script>
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="bg-flower">
+    <!-- Top promo bar -->
+    <div class="topbar text-center small">
+        <i class="fa-solid fa-car-side"></i> Giao trong ngày tại Đà Nẵng · <i class="fa-solid fa-gift"></i> Tặng thiệp viết tay · <i class="fa-solid fa-feather-pointed"></i> Điểm thưởng cho mỗi đơn
+    </div>
+
+    <!-- Navbar -->
+    <header class="shadow-sm">
+        <nav class="navbar navbar-expand-lg navbar-flower">
+            <div class="container-fluid px-3 px-md-4">
+                <a class="navbar-brand d-flex align-items-center gap-2" asp-area="" asp-page="/Index">
+                    <img src="~/images/flowers/logo-flower.svg" alt="Flower Shop" width="28" height="28" />
+                    <span class="fw-bold">Flower Shop</span>
+                </a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+                        aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="mainNav">
+                    <!-- Left links -->
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item"><a class="nav-link" asp-area="" asp-page="/Index">Trang chủ</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-area="" asp-page="Shop/Index">Cửa Hàng</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#">Dịp tặng</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-page="#">Chính sách</a></li>
+                    </ul>
+
+                    <!-- Search + Cart + Account -->
+                    <form class="d-none d-lg-flex me-3" role="search" action="#" method="get">
+                        <input class="form-control form-control-sm" name="q" placeholder="Tìm hoa..." />
+                    </form>
+
+                    <div class="d-flex align-items-center gap-2">
+                        <a class="btn btn-outline-rose position-relative" href="#" aria-label="Giỏ hàng">
+                            <i class="fa-solid fa-cart-shopping"></i>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none"
+                                  id="cart-count">0</span>
+                        </a>
+                        @if (isAuth)
+                        {
+
+                            <div class="dropdown">
+                                <button class="btn btn-rose dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                    @displayName
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow">
+                                    <li><a class="dropdown-item" href="#">Hồ sơ</a></li>
+                                    <li><a class="dropdown-item" href="#">Đơn hàng</a></li>
+                                    <li><hr class="dropdown-divider" /></li>
+                                    <li>
+                                        <form method="post" asp-page="/Account/Logout" class="px-3">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-link dropdown-item p-0">Đăng xuất</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        }
+                        else
+                        {
+                            <a class="btn btn-outline-rose" asp-page="/Account/Login">Đăng nhập</a>
+                            <a class="btn btn-rose" href="#">Đăng ký</a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    @* Cho phép trang chèn hero/banner toàn chiều rộng khi cần *@
+    @await RenderSectionAsync("Banner", required: false)
+
+    <div class="@(full ? "container-fluid px-0" : "container") my-4">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="footer-flower mt-auto">
+        <div class="container py-4">
+            <div class="row g-3 align-items-center">
+                <div class="col-md">
+                    <div class="fw-semibold">© @DateTime.Now.Year Flower Shop</div>
+                    <div class="text-muted small">Fresh blooms, warm wishes.</div>
+                </div>
+                <div class="col-md text-md-end">
+                    <a class="link-flower me-3" href="/About">Về chúng tôi</a>
+                    <a class="link-flower me-3" asp-page="/Privacy">Chính sách</a>
+                    <a class="link-flower" href="/Contact">Liên hệ</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

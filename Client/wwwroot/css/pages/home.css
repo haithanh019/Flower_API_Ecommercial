@@ -1,0 +1,24 @@
+﻿/* Hero */
+.hero-flower {
+    padding: clamp(36px, 6vw, 72px) 0;
+    background: linear-gradient(120deg, rgba(224,75,123,.08), rgba(46,125,99,.06)), radial-gradient(1000px 400px at 110% -10%, rgba(224,75,123,.10), transparent 70%), radial-gradient(1000px 400px at -10% 120%, rgba(46,125,99,.10), transparent 70%);
+}
+
+.hero-figure {
+    background: rgba(255,255,255,.6);
+    padding: 12px;
+}
+
+/* Product cards */
+.product-card .badge {
+    border: 1px solid rgba(0,0,0,.06);
+}
+
+.product-card .ratio.ph {
+    background: linear-gradient(135deg,#ffe3ee,#f3fff7);
+}
+
+/* Object-fit for Bootstrap < 5.3 */
+.object-fit-cover {
+    object-fit: cover;
+}

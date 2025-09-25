@@ -1,0 +1,90 @@
+﻿:root {
+    --flower-pink: #f7c7d9;
+    --flower-rose: #e04b7b;
+    --flower-green: #2e7d63;
+}
+
+.btn-flower {
+    background: var(--flower-rose);
+    border-color: var(--flower-rose);
+}
+
+.link-flower {
+    color: var(--flower-green);
+}
+
+    .link-flower:hover {
+        color: #215748;
+    }
+:root {
+    --flower-pink: #f7c7d9;
+    --flower-rose: #e04b7b;
+    --flower-green: #2e7d63;
+    --flower-ink: #3b2b2f;
+    --flower-bg: #fff8fb;
+}
+
+/* Nền dịu cho toàn site */
+.bg-flower {
+    background: radial-gradient(1200px 400px at -10% -20%, rgba(224,75,123,.06), transparent 70%), radial-gradient(1200px 400px at 120% 120%, rgba(46,125,99,.06), transparent 70%), var(--flower-bg);
+}
+
+/* Top promo bar */
+.topbar {
+    background: linear-gradient(90deg, rgba(224,75,123,.15), rgba(46,125,99,.15));
+    color: var(--flower-ink);
+    padding: .35rem .75rem;
+}
+
+/* Navbar */
+.navbar-flower {
+    background: #fff;
+}
+
+    .navbar-flower .navbar-brand,
+    .navbar-flower .nav-link {
+        color: var(--flower-ink);
+    }
+
+        .navbar-flower .nav-link:hover {
+            color: var(--flower-rose);
+        }
+
+/* Buttons (rose tone) */
+.btn-rose {
+    background: var(--flower-rose);
+    border-color: var(--flower-rose);
+    color: #fff;
+}
+
+    .btn-rose:hover {
+        filter: brightness(.95);
+        color: #fff;
+    }
+
+.btn-outline-rose {
+    color: var(--flower-rose);
+    border-color: var(--flower-rose);
+    background: transparent;
+}
+
+    .btn-outline-rose:hover {
+        background: var(--flower-rose);
+        color: #fff;
+    }
+
+/* Links & footer */
+.link-flower {
+    color: var(--flower-green);
+    text-decoration: none;
+}
+
+    .link-flower:hover {
+        color: #215748;
+        text-decoration: underline;
+    }
+
+.footer-flower {
+    background: linear-gradient(180deg, rgba(247,199,217,.25), rgba(255,255,255,0));
+    border-top: 1px solid rgba(0,0,0,.05);
+}

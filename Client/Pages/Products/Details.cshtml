@@ -1,0 +1,218 @@
+﻿@page
+@model Client.Pages.Products.DetailsModel
+@{
+    ViewData["Title"] = "Product Details";
+    Layout = "/Pages/Shared/_Layout.cshtml";
+}
+@section Styles {
+    <style>
+        .thumb {
+            width: 72px;
+            height: 72px;
+            object-fit: cover;
+            border-radius: .5rem;
+        }
+    </style>
+}
+
+<div class="container py-4" style="max-width: 980px;">
+    <div class="d-flex align-items-center mb-3">
+        <h2 class="mb-0">Chi tiết sản phẩm #@Model.Product?.ProductId</h2>
+        <a class="btn btn-light border ms-auto" href="/Products">Quay lại</a>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger">@Model.ErrorMessage</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(Model.SuccessMessage))
+    {
+        <div class="alert alert-success">@Model.SuccessMessage</div>
+    }
+
+    @if (Model.Product is null)
+    {
+        <div class="alert alert-warning">Không tìm thấy sản phẩm.</div>
+    }
+    else
+    {
+        <div class="row g-3">
+            <div class="col-md-7">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <dl class="row mb-0">
+                            <dt class="col-sm-4">Tên</dt>
+                            <dd class="col-sm-8">@Model.Product.ProductName</dd>
+
+                            <dt class="col-sm-4">Giá</dt>
+                            <dd class="col-sm-8">@Model.Product.Price.ToString("#,0")</dd>
+
+                            <dt class="col-sm-4">Kho</dt>
+                            <dd class="col-sm-8">@Model.Product.StockQuantity</dd>
+
+                            <dt class="col-sm-4">Danh mục</dt>
+                            <dd class="col-sm-8">@Model.CategoryName(Model.Product.CategoryId)</dd>
+
+                            <dt class="col-sm-4">Trạng thái</dt>
+                            <dd class="col-sm-8">
+                                @(Model.Product.IsActive ? Html.Raw("<span class='badge bg-success'>Active</span>")
+                                                            : Html.Raw("<span class='badge bg-secondary'>Inactive</span>"))
+                        </dd>
+
+                            <dt class="col-sm-4">Mô tả</dt>
+                            <dd class="col-sm-8">@Model.Product.Description</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-5">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                    @if (Model.Product.ImageUrls != null && Model.Product.ImageUrls.Count > 0)
+                        {
+                            <div id="prodCarousel" class="carousel slide" data-bs-ride="false">
+                                <div class="carousel-inner">
+                                    @{
+                                        for (int i = 0; i < Model.Product.ImageUrls.Count; i++)
+                                        {
+                                            var url = Model.Product.ImageUrls[i];
+                                            <div class="carousel-item @(i == 0 ? "active" : "")">
+                                                <img class="d-block w-100 rounded" style="max-height:420px;object-fit:cover"
+                                                     src="@url" onerror="this.src='/images/placeholder.png'" />
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                                <button class="carousel-control-prev" type="button" data-bs-target="#prodCarousel" data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon"></span>
+                                </button>
+                                <button class="carousel-control-next" type="button" data-bs-target="#prodCarousel" data-bs-slide="next">
+                                    <span class="carousel-control-next-icon"></span>
+                                </button>
+                            </div>
+                            <div class="mt-2 d-flex flex-wrap gap-2">
+                                @foreach (var u in Model.Product.ImageUrls)
+                                {
+                                    <img src="@u" class="thumb border" onerror="this.src='/images/placeholder.png'" />
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <img class="img-fluid rounded" src="@Model.Product.ImageUrl" alt="image"
+                                 onerror="this.src='/images/placeholder.png'">
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (Model.CanManage)
+        {
+            <div class="card shadow-sm mt-4">
+                <div class="card-header d-flex align-items-center">
+                    <strong>Cập nhật sản phẩm</strong>
+                    <form method="post" asp-page-handler="Delete" class="ms-auto" asp-antiforgery="true"
+                          onsubmit="return confirm('Xoá sản phẩm @Model.Product.ProductName ?')">
+                        <input type="hidden" name="id" value="@Model.Product.ProductId" />
+                        <button class="btn btn-outline-danger btn-sm">Xoá</button>
+                    </form>
+                </div>
+
+                <form method="post" asp-page-handler="Update" asp-antiforgery="true">
+                    <div class="card-body vstack gap-3">
+                        <input type="hidden" name="id" value="@Model.Product.ProductId" />
+
+                        <div class="form-floating">
+                            <input class="form-control" name="Edit.ProductName" id="Edit-Name" value="@Model.Edit.ProductName" placeholder="Tên" />
+                            <label for="Edit-Name">Tên sản phẩm</label>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input class="form-control" type="number" step="0.01" min="0"
+                                           name="Edit.Price" id="Edit-Price"
+                                           value="@Model.Edit.Price.ToString(System.Globalization.CultureInfo.InvariantCulture)" placeholder="Giá" />
+                                    <label for="Edit-Price">Giá</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input class="form-control" type="number" step="1" min="0"
+                                           name="Edit.StockQuantity" id="Edit-Stock"
+                                           value="@Model.Edit.StockQuantity" placeholder="Kho" />
+                                    <label for="Edit-Stock">Kho</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        
+                            <div class="col-md-12">
+                                <div class="form-floating">
+                                    <select class="form-select" name="Edit.CategoryId" id="Edit-Cat">
+                                        @foreach (var c in Model.Categories)
+                                        {
+                                            <option value="@c.Id" selected="@(Model.Edit.CategoryId == c.Id)">@c.Name</option>
+                                        }
+                                    </select>
+                                    <label for="Edit-Cat">Danh mục</label>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div>
+                                    <div class="dnd-multi border rounded p-3 text-center"
+                                         data-hidden="editGalleryJson"
+                                         data-gallery="editGallery"
+                                         data-init='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Edit.ImageUrls ?? new List<string>()))'>
+                                    
+                                        <div class="small text-muted">Kéo nhiều ảnh hoặc nhấn để chọn</div>
+                                        <input type="file" accept="image/*" class="d-none dnd-file" multiple />
+                                    </div>
+                                    <input type="hidden" id="editGalleryJson" name="Edit_GalleryJson" />
+                                    <div id="editGallery" class="row row-cols-2 row-cols-md-3 g-2 mt-2"></div>
+                                    <small class="text-muted">Hỗ trợ jpg/png/webp, tối đa 4/5MB/ảnh.</small>
+                                </div>
+                            </div>
+                        
+
+                        <div class="form-floating">
+                            <textarea class="form-control" style="height:120px" name="Edit.Description" id="Edit-Desc" placeholder="Mô tả">@Model.Edit.Description</textarea>
+                            <label for="Edit-Desc">Mô tả</label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="Edit.IsActive" id="Edit-Active" value="true" @(Model.Edit.IsActive ? "checked" : null) />
+                            <input type="hidden" name="Edit.IsActive" value="false" />
+                            <label class="form-check-label" for="Edit-Active">Kích hoạt</label>
+                        </div>
+                    </div>
+                    <div class="card-footer d-flex gap-2">
+                        <button class="btn btn-primary">Lưu thay đổi</button>
+                        <a class="btn btn-light border" href="/Products">Về danh sách</a>
+                    </div>
+                </form>
+            </div>
+        }
+    }
+</div>
+
+@section Scripts {
+    <script src="~/js/product-index.js" asp-append-version="true"></script>
+    <script>
+        // Khởi tạo gallery từ dữ liệu hiện có
+        (function(){
+            const existing = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Product?.ImageUrls ?? new List<string>()));
+            const hidden = document.getElementById('editGalleryJson');
+            const gal = document.getElementById('editGallery');
+            if (hidden) hidden.value = JSON.stringify(existing);
+            if (gal) {
+                gal.innerHTML = existing.map(u =>
+                  `<div class="col"><div class="ratio ratio-1x1 border rounded overflow-hidden">
+                     <img src="${u}" class="w-100 h-100" style="object-fit:cover" />
+                   </div></div>`).join('');
+            }
+        })();
+    </script>
+}

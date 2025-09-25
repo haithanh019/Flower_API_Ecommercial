@@ -1,0 +1,103 @@
+﻿@page
+@model Client.Pages.Orders.CheckoutModel
+@{
+    ViewData["Title"] = "Checkout";
+    Layout = "/Pages/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="d-flex align-items-center mb-3">
+        <h2 class="mb-0">Thanh toán</h2>
+        <a class="btn btn-light border ms-auto" href="/Shop">Tiếp tục mua sắm</a>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger">@Model.ErrorMessage</div>
+    }
+
+    @if (Model.Product is null)
+    {
+        <div class="alert alert-warning">Không có sản phẩm để thanh toán.</div>
+    }
+    else
+    {
+        <div class="row g-4">
+            <div class="col-md-7">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-3">Địa chỉ & phương thức</h6>
+
+                        <form method="post" asp-antiforgery="true">
+                            <input type="hidden" asp-for="Pid" />
+                            <input type="hidden" asp-for="Qty" />
+
+                            <div class="mb-3">
+                                <label class="form-label" asp-for="ShippingAddress">Địa chỉ giao hàng</label>
+                                <textarea class="form-control" asp-for="ShippingAddress" rows="3"
+                                          placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành"></textarea>
+                                <span class="text-danger" asp-validation-for="ShippingAddress"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label" asp-for="PaymentMethod">Phương thức thanh toán</label>
+                                <select class="form-select" asp-for="PaymentMethod">
+                                    <option value="0">Tiền mặt khi nhận (COD)</option>
+                                    <option value="1">Chuyển khoản ngân hàng</option>
+                                    <option value="2">Ví điện tử</option>
+                                </select>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <a class="btn btn-light border" href="/Shop/Details?id=@Model.Product.ProductId">Quay lại</a>
+                                <button class="btn btn-primary">Đặt hàng</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-5">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-3">Tóm tắt đơn</h6>
+
+                        <div class="d-flex gap-3 align-items-center mb-3">
+                            <img src="@(!string.IsNullOrEmpty(Model.Product.ImageUrl) ? Model.Product.ImageUrl : "/img/no-image.png")"
+                                 alt="@Model.Product.ProductName"
+                                 style="width:72px;height:72px;object-fit:cover" class="rounded border">
+                            <div class="flex-grow-1">
+                                <div class="fw-semibold">@Model.Product.ProductName</div>
+                                <div class="small text-muted">@Model.CategoryName(Model.Product.CategoryId)</div>
+                            </div>
+                            <div class="text-end">
+                                <div class="small text-muted">SL</div>
+                                <div class="fw-semibold">@Model.Qty</div>
+                            </div>
+                        </div>
+
+                        <hr />
+                        <div class="d-flex justify-content-between">
+                            <div>Tạm tính</div>
+                            <div>@(Model.Subtotal.ToString("#,0")) ₫</div>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <div>Phí giao (ước tính)</div>
+                            <div>0 ₫</div>
+                        </div>
+                        <hr />
+                        <div class="d-flex justify-content-between h5">
+                            <div>Tổng cộng</div>
+                            <div>@(Model.Subtotal.ToString("#,0")) ₫</div>
+                        </div>
+                        <div class="small text-muted">Giá & tồn kho được xác nhận khi đặt hàng.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,106 @@
+﻿@page
+@model Client.Pages.Account.LoginModel
+@{
+    ViewData["Title"] = "Login";
+    ViewData["FullWidth"] = true;
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/account/login.css" asp-append-version="true" />
+}
+
+<div class="auth-bg d-flex align-items-center">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-10 col-lg-8">
+                <div class="card shadow-lg rounded-4 flower-card overflow-hidden">
+                    <div class="row g-0">
+                        <!-- Left brand panel -->
+                        <div class="col-lg-5 d-none d-lg-block" style="background:
+                radial-gradient(1200px 400px at -10% -20%, rgba(224,75,123,.25), transparent 70%),
+                radial-gradient(1200px 400px at 120% 120%, rgba(46,125,99,.25), transparent 70%),
+                linear-gradient(180deg, rgba(255,255,255,.2), rgba(255,255,255,0));">
+                            <div class="h-100 p-4 d-flex flex-column justify-content-between">
+                                <div>
+                                    <span class="brand-badge">🌸 Flower Shop</span>
+                                    <h3 class="mt-3">Bloom into your day</h3>
+                                    <p class="text-secondary mb-0">Đăng nhập để đặt hoa nhanh, theo dõi đơn và nhận ưu đãi thành viên.</p>
+                                </div>
+                                <ul class="small text-secondary ps-3 mb-0">
+                                    <li>Giao trong ngày tại Đà Nẵng</li>
+                                    <li>Thiệp chúc mừng viết tay</li>
+                                    <li>Điểm thưởng cho mỗi đơn</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Right form -->
+                        <div class="col-lg-7">
+                            <div class="p-4 p-md-5">
+                                <div class="mb-3 text-center">
+                                    <h2 class="mb-1">Đăng nhập</h2>
+                                    <div class="text-secondary">Chào mừng bạn quay lại <i class="fa-solid fa-door-open"></i></div>
+                                </div>
+
+                                <div asp-validation-summary="ModelOnly" class="alert alert-danger d-none" role="alert"></div>
+                                @* CHANGED: gom ErrorMessage về 1 alert *@
+                                @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                                {
+                                    <div class="alert alert-danger" role="alert">@Model.ErrorMessage</div>
+                                }
+
+                                <form method="post" asp-antiforgery="true" class="needs-validation" novalidate id="loginForm">
+                                    <div class="mb-3">
+                                        <label asp-for="Input.Email" class="form-label">Email</label>
+                                        @* CHANGED: type, autocomplete, inputmode *@
+                                        <input asp-for="Input.Email" type="email" autocomplete="username" inputmode="email"
+                                               class="form-control form-control-lg" placeholder="you@example.com" />
+                                        <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <label asp-for="Input.Password" class="form-label">Mật khẩu</label>
+                                        <div class="input-group input-group-lg">
+                                            @* CHANGED: autocomplete current-password *@
+                                            <input asp-for="Input.Password" type="password" autocomplete="current-password"
+                                                   class="form-control" placeholder="••••••••" />
+                                            <button id="togglePassword" class="btn btn-outline-secondary" type="button" aria-label="Hiện/ẩn mật khẩu"><i class="fa-solid fa-eye"></i></button>
+                                        </div>
+                                        <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center mb-4">
+                                        <a class="small link-flower" href="/auth/forgot-password">Quên mật khẩu?</a>
+                                        <a class="small text-decoration-none" href="/auth/register">Chưa có tài khoản?</a>
+                                    </div>
+
+                                    <button id="submitBtn" type="submit" class="btn btn-flower btn-lg w-100 shadow-sm">Đăng nhập</button>
+
+                                    <div class="text-center text-secondary mt-3 small">
+                                        Khi đăng nhập, bạn đồng ý với <a href="/terms" class="link-flower">Điều khoản</a> của Flower Shop.
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="text-center mt-3 text-secondary small">
+                    © @DateTime.Now.Year Flower Shop — Fresh blooms, warm wishes.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/account-login.js" asp-append-version="true"></script>
+    <script>
+        // Ngăn double-submit
+        document.getElementById('loginForm')?.addEventListener('submit', function () {
+            const btn = document.getElementById('submitBtn');
+            if (btn) { btn.setAttribute('disabled', 'disabled'); }
+        });
+    </script>
+}

@@ -1,0 +1,123 @@
+﻿@page
+@model Client.Pages.Shop.DetailsModel
+@{
+    ViewData["Title"] = Model.Product?.ProductName ?? "Chi tiết sản phẩm";
+    Layout = "/Pages/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4 shop-detail">
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger">@Model.ErrorMessage</div>
+    }
+    else if (Model.Product is not null)
+    {
+        <nav class="mb-3">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="/Shop">Cửa hàng</a></li>
+                <li class="breadcrumb-item">
+                    <a href="/Shop?categoryId=@Model.Product.CategoryId">@Model.CategoryName(Model.Product.CategoryId)</a>
+                </li>
+                <li class="breadcrumb-item active">@Model.Product.ProductName</li>
+            </ol>
+        </nav>
+
+        <div class="row g-4">
+            <div class="col-md-6">
+                @if (Model.Images.Count <= 1)
+                {
+                    <div class="ratio ratio-1x1 border rounded overflow-hidden">
+                        <img src="@Model.Images.FirstOrDefault()"
+                             class="w-100 h-100" style="object-fit:cover"
+                             alt="@Model.Product.ProductName" />
+                    </div>
+                }
+                else
+                {
+                    var cid = "prodCarousel";
+                    <div id="@cid" class="carousel slide border rounded overflow-hidden">
+                        <div class="carousel-inner">
+                            @for (int i = 0; i < Model.Images.Count; i++)
+                            {
+                                <div class="carousel-item @(i == 0 ? "active" : null)">
+                                    <div class="ratio ratio-1x1">
+                                        <img src="@Model.Images[i]" class="d-block w-100 h-100" style="object-fit:cover" alt="img-@i" />
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#@cid" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#@cid" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+                    </div>
+                }
+            </div>
+
+            <div class="col-md-6">
+                <h3 class="mb-1">@Model.Product.ProductName</h3>
+                <div class="text-muted mb-2">@Model.CategoryName(Model.Product.CategoryId)</div>
+                <div class="h4 text-primary">@Model.Product.Price.ToString("#,0") ₫</div>
+                <div class="mb-2">
+                    Đang còn: <strong>@Model.Product.StockQuantity</strong>
+                    @if (!Model.Product.IsActive)
+                    {
+                        <span class="badge bg-secondary ms-2">Ngừng bán</span>
+                    }
+                </div>
+                @if (!string.IsNullOrWhiteSpace(Model.Product.Description))
+                {
+                    <p class="mt-3">@Model.Product.Description</p>
+                }
+
+                <form class="d-flex gap-2 mt-3" method="post" action="/Cart?handler=Add">
+                    <input type="hidden" name="productId" value="@Model.Product.ProductId" />
+                    <input type="number" name="qty" value="1" min="1"
+                           max="@Math.Max(1, Model.Product.StockQuantity)"
+                           class="form-control" style="max-width:120px" />
+                    <button class="btn btn-outline-primary" type="submit">Thêm vào giỏ</button>
+                    <a class="btn btn-primary" href="/Orders/Checkout?pid=@Model.Product.ProductId&qty=1">Mua ngay</a>
+                </form>
+
+
+            </div>
+        </div>
+
+        @if (Model.Related.Count > 0)
+        {
+            <h5 class="mt-5 mb-3">Sản phẩm tương tự</h5>
+            <div class="row g-3">
+                @foreach (var r in Model.Related)
+                {
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <div class="card h-100 shadow-sm">
+                            <img src="@(!string.IsNullOrEmpty(r.ImageUrl) ? r.ImageUrl : "/img/no-image.png")"
+                                 class="card-img-top" style="height:180px;object-fit:cover" alt="@r.ProductName" />
+                            <div class="card-body d-flex flex-column">
+                                <div class="small text-muted">@Model.CategoryName(r.CategoryId)</div>
+                                <h6 class="card-title mt-1 mb-2">@r.ProductName</h6>
+                                <div class="mt-auto d-flex justify-content-between align-items-center">
+                                    <strong>@r.Price.ToString("#,0") ₫</strong>
+                                    <a class="btn btn-sm btn-outline-primary" href="/Shop/Details?id=@r.ProductId">Xem</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+</div>
+
+@section Styles {
+    <style>
+        .shop-detail .carousel,
+        .shop-detail .ratio {
+            background: #f8f9fa;
+        }
+    </style>
+}

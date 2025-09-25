@@ -1,0 +1,248 @@
+﻿/* ========== Flower Shop • Products (refined) ========== */
+:root {
+    --rose: var(--flower-rose, #e04b7b);
+    --green: var(--flower-green, #2e7d63);
+    --ink: var(--flower-ink, #3b2b2f);
+}
+
+/* ----- Page header (title + CTA) ----- */
+.products-page > .d-flex.align-items-center.mb-3 {
+    padding-block: .25rem .9rem;
+    border-bottom: 1px dashed rgba(224,75,123,.35);
+}
+
+.products-page h2 {
+    font-weight: 800;
+    letter-spacing: .2px;
+    color: var(--ink);
+}
+
+.products-page .btn-primary {
+    background: var(--rose);
+    border-color: var(--rose);
+    box-shadow: 0 8px 24px -12px rgba(224,75,123,.55);
+}
+
+    .products-page .btn-primary:hover {
+        filter: brightness(.95);
+    }
+
+/* ----- Filter toolbar ----- */
+.products-page form.row.g-2.mb-3 {
+    padding: .75rem;
+    border-radius: 16px;
+    background: linear-gradient(180deg, rgba(247,199,217,.20), rgba(255,255,255,0));
+    border: 1px solid rgba(224,75,123,.12);
+}
+
+    .products-page form.row.g-2.mb-3 .form-control,
+    .products-page form.row.g-2.mb-3 .form-select {
+        border-radius: 999px;
+        padding-inline: 1rem;
+        height: 42px;
+    }
+
+    .products-page form.row.g-2.mb-3 .btn-primary {
+        background: var(--rose);
+        border-color: var(--rose);
+    }
+
+    .products-page form.row.g-2.mb-3 .btn-outline-danger {
+        color: var(--rose);
+        border-color: var(--rose);
+    }
+
+        .products-page form.row.g-2.mb-3 .btn-outline-danger:hover {
+            background: var(--rose);
+            color: #fff;
+        }
+
+/* ----- Data card + table ----- */
+.products-page .card.shadow-sm {
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1px solid rgba(0,0,0,.06);
+    background: #fff;
+    box-shadow: 0 12px 30px -18px rgba(0,0,0,.25);
+}
+
+/* sticky header + better contrast */
+.products-page .table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: linear-gradient(0deg,#fff, rgba(247,199,217,.35));
+    color: var(--ink);
+    font-weight: 700;
+    border-bottom: 1px solid rgba(0,0,0,.06);
+}
+
+/* comfy rows */
+.products-page .table > :not(caption) > * > * {
+    padding-block: .9rem;
+}
+
+.products-page .table tbody tr {
+    transition: background-color .15s ease, transform .05s ease;
+}
+
+    .products-page .table tbody tr:hover {
+        background-color: rgba(224,75,123,.05);
+    }
+
+/* column widths for readability */
+.products-page th:nth-child(1), .products-page td:nth-child(1) {
+    width: 64px;
+}
+
+.products-page th:nth-child(3), .products-page td:nth-child(3) {
+    width: 140px;
+}
+
+.products-page th:nth-child(4), .products-page td:nth-child(4) {
+    width: 110px;
+    text-align: right;
+}
+
+/* price highlight */
+.products-page td:nth-child(3) {
+    color: var(--rose);
+    font-weight: 700;
+}
+
+/* inventory with tabular numbers */
+.products-page td:nth-child(4) {
+    font-variant-numeric: tabular-nums;
+}
+
+/* status badges tone */
+.badge.bg-success {
+    background-color: var(--green) !important;
+}
+
+.badge.bg-secondary {
+    background-color: #bbb !important;
+}
+
+/* actions feel lighter, show stronger on hover row */
+.products-page .table .btn {
+    transition: all .15s ease;
+}
+
+.products-page .table tbody tr .btn {
+    opacity: .85;
+}
+
+.products-page .table tbody tr:hover .btn {
+    opacity: 1;
+    box-shadow: 0 6px 18px -12px rgba(224,75,123,.6);
+}
+
+.products-page .btn.btn-sm.btn-outline-primary {
+    border-color: var(--rose);
+    color: var(--rose);
+}
+
+    .products-page .btn.btn-sm.btn-outline-primary:hover {
+        background: var(--rose);
+        color: #fff;
+    }
+
+.products-page .btn.btn-sm.btn-outline-danger {
+    border-color: var(--rose);
+    color: var(--rose);
+}
+
+    .products-page .btn.btn-sm.btn-outline-danger:hover {
+        background: var(--rose);
+        color: #fff;
+    }
+
+/* pagination footer */
+.products-page .card-footer {
+    background: linear-gradient(180deg, rgba(247,199,217,.18), rgba(255,255,255,0));
+}
+
+.products-page .pagination .page-link {
+    border-radius: 8px;
+    margin: 0 2px;
+}
+
+.products-page .page-item.active .page-link {
+    background: var(--rose);
+    border-color: var(--rose);
+    box-shadow: 0 6px 16px -10px rgba(224,75,123,.6);
+}
+
+/* modals polish */
+.products-page .modal-content {
+    border-radius: 16px;
+    border: 1px solid rgba(0,0,0,.06);
+}
+
+.products-page .modal-header {
+    background: linear-gradient(90deg, rgba(247,199,217,.45), rgba(46,125,99,.12));
+    border-bottom: none;
+}
+
+.products-page .modal-title {
+    font-weight: 800;
+    color: var(--ink);
+}
+
+.products-page .modal-content .form-control:focus,
+.products-page .modal-content .form-select:focus {
+    border-color: var(--rose);
+    box-shadow: 0 0 0 .25rem rgba(224,75,123,.15);
+}
+
+.products-page .modal-footer .btn-primary {
+    background: var(--rose);
+    border-color: var(--rose);
+}
+/* Modal body đã scrollable nhờ .modal-dialog-scrollable.
+   Giới hạn riêng vùng thumbnails để không đẩy footer ra ngoài. */
+.products-page .thumbs-grid {
+    max-height: 40vh; /* tùy, 35–50vh đều ổn */
+    overflow: auto;
+    padding-right: .25rem; /* tránh thanh cuộn đè nội dung */
+}
+
+    .products-page .thumbs-grid .col {
+        position: relative;
+    }
+
+    .products-page .thumbs-grid .remove {
+        line-height: 1;
+    }
+
+.products-page .dnd-multi {
+    cursor: pointer;
+    background: #fafafa;
+}
+
+    .products-page .dnd-multi.bg-light {
+        background: #f1f3f5;
+    }
+
+/* links in table */
+.products-page .table a {
+    color: var(--ink);
+    text-decoration: none;
+}
+
+    .products-page .table a:hover {
+        color: var(--rose);
+        text-decoration: underline;
+    }
+
+/* mobile niceties */
+@media (max-width: 575.98px) {
+    .products-page form.row.g-2.mb-3 .btn {
+        width: 100%;
+    }
+
+    .products-page .table {
+        font-size: .95rem;
+    }
+}
