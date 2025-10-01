@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Business.Entities;
+using DataAccess.DTOs.CartDTOs;
 // DTOs
 using DataAccess.DTOs.CategoryDTOs;
 using DataAccess.DTOs.OrderDTOs;
@@ -89,6 +90,36 @@ namespace DataAccess.Helper
                 .ForMember(d => d.Status, o => o.MapFrom(_ => PaymentStatus.Pending))
                 .ForMember(d => d.PaymentDate, o => o.Ignore());
             CreateMap<PaymentUpdateDto, Payment>();
+            // ===== Cart =====
+            CreateMap<CartItem, CartItemDto>()
+                .ForMember(d => d.ProductName, o => o.MapFrom(s => s.Product.ProductName))
+                .ForMember(
+                    d => d.ImageUrl,
+                    o =>
+                        o.MapFrom(s =>
+                            s.Product.ProductImages.OrderBy(pi => pi.ProductImageId)
+                                .Select(pi => pi.ImageUrl)
+                                .FirstOrDefault()
+                        )
+                )
+                .ForMember(d => d.UnitPrice, o => o.MapFrom(s => s.UnitPrice))
+                .ForMember(d => d.Quantity, o => o.MapFrom(s => s.Quantity))
+                .ForMember(d => d.ProductId, o => o.MapFrom(s => s.ProductId))
+                .ForMember(d => d.CartId, o => o.MapFrom(s => s.CartId))
+                .ForMember(d => d.CartItemId, o => o.MapFrom(s => s.CartItemId));
+
+            CreateMap<Cart, CartDto>()
+                // đưa danh sách item về đúng DTO
+                .ForMember(
+                    d => d.Items,
+                    o => o.MapFrom(s => s.CartItems.OrderByDescending(x => x.CartItemId))
+                )
+                // “Số lượng” nên là tổng qty
+                .ForMember(d => d.ItemCount, o => o.MapFrom(s => s.CartItems.Sum(x => x.Quantity)))
+                .ForMember(
+                    d => d.Subtotal,
+                    o => o.MapFrom(s => s.CartItems.Sum(x => x.UnitPrice * x.Quantity))
+                );
         }
     }
 }

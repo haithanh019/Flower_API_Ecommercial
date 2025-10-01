@@ -10,6 +10,8 @@ namespace Repositories.UnitOfWork
         ICategoryRepository CategoryRepository { get; }
         IPaymentRepository PaymentRepository { get; }
         IProductImageRepository ProductImageRepository { get; }
+        ICartRepository CartRepository { get; }
+        ICartItemRepository CartItemRepository { get; }
         Task SaveAsync();
     }
 }

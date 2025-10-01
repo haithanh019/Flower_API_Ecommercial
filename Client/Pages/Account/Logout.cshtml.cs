@@ -8,7 +8,6 @@ namespace Client.Pages.Account
         public IActionResult OnPost()
         {
             HttpContext.Session.Clear();
-            Response.Cookies.Delete(".AspNetCore.Session");
             return LocalRedirect(Url.Content("~/"));
         }
     }

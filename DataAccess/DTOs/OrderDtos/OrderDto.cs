@@ -8,7 +8,7 @@ namespace DataAccess.DTOs.OrderDTOs
         public int OrderId { get; set; }
 
         public int CustomerId { get; set; }
-        public string? CustomerName { get; set; } // NEW (map từ User.FullName)
+        public string? CustomerName { get; set; }
 
         public DateTime OrderDate { get; set; }
 
@@ -18,15 +18,13 @@ namespace DataAccess.DTOs.OrderDTOs
         public string? CustomerNote { get; set; }
 
         public decimal TotalAmount { get; set; }
-
-        // Payment (đặt nullable để an toàn)
-        public int? PaymentStatus { get; set; } // 0 Pending, 1 Completed, 2 Failed, 3 Refunded
+        public int? PaymentStatus { get; set; }
         public int? PaymentMethod { get; set; } // 0 Cash, 1 BankTransfer, 2 EWallet
         public DateTime? PaymentDate { get; set; }
         public string? TransactionId { get; set; }
 
         // Chi tiết
-        public List<OrderItemDto> Items { get; set; } = new(); // NEW
+        public List<OrderItemDto> Items { get; set; } = new();
     }
 
     public class OrderItemDto

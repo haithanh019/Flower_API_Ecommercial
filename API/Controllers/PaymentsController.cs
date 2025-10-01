@@ -1,14 +1,10 @@
 ﻿using System.Security.Claims;
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using DataAccess.DTOs.PaymentDTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Formatter;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.AspNetCore.OData.Routing.Controllers;
-using Microsoft.EntityFrameworkCore;
-using Repositories.UnitOfWork;
 using Services.FacadeService;
 
 namespace API.Controllers
@@ -17,15 +13,8 @@ namespace API.Controllers
     public class PaymentsController : ODataController
     {
         private readonly IFacadeService _facade;
-        private readonly IUnitOfWork _uow;
-        private readonly IMapper _mapper;
 
-        public PaymentsController(IFacadeService facade, IUnitOfWork uow, IMapper mapper)
-        {
-            _facade = facade;
-            _uow = uow;
-            _mapper = mapper;
-        }
+        public PaymentsController(IFacadeService facade) => _facade = facade;
 
         // GET /odata/Payments
         [EnableQuery]
@@ -36,61 +25,50 @@ namespace API.Controllers
             if (role.Equals("Customer", StringComparison.OrdinalIgnoreCase))
             {
                 var userIdStr = User.FindFirst("UserId")?.Value;
-                if (string.IsNullOrWhiteSpace(userIdStr))
+                if (!int.TryParse(userIdStr, out var userId))
                     return Forbid();
-                var userId = int.Parse(userIdStr);
 
-                var mine = await _uow
-                    .PaymentRepository.Query()
-                    .Where(p => p.Order.CustomerId == userId)
-                    .ProjectTo<PaymentDto>(_mapper.ConfigurationProvider)
-                    .ToListAsync();
-
-                return Ok(mine);
+                var customerPayments = await _facade.PaymentService.GetByCustomerIdAsync(userId);
+                return Ok(customerPayments);
             }
 
-            var all = await _uow
-                .PaymentRepository.Query()
-                .ProjectTo<PaymentDto>(_mapper.ConfigurationProvider)
-                .ToListAsync();
-
-            return Ok(all);
+            var data = await _facade.PaymentService.GetAllAsync();
+            return Ok(data);
         }
 
         // GET /odata/Payments(1)
         [EnableQuery]
         public async Task<IActionResult> Get([FromODataUri] int key)
         {
-            var role = User.FindFirst(ClaimTypes.Role)?.Value ?? string.Empty;
+            var dto = await _facade.PaymentService.GetByIdAsync(key);
+            if (dto is null)
+                return NotFound();
 
+            var role = User.FindFirst(ClaimTypes.Role)?.Value ?? string.Empty;
             if (role.Equals("Customer", StringComparison.OrdinalIgnoreCase))
             {
                 var userIdStr = User.FindFirst("UserId")?.Value;
-                if (string.IsNullOrWhiteSpace(userIdStr))
+                if (!int.TryParse(userIdStr, out var userId))
                     return Forbid();
-                var userId = int.Parse(userIdStr);
 
-                var dto = await _uow
-                    .PaymentRepository.Query()
-                    .Where(p => p.PaymentId == key && p.Order.CustomerId == userId)
-                    .ProjectTo<PaymentDto>(_mapper.ConfigurationProvider)
-                    .SingleOrDefaultAsync();
-
-                return dto is null ? NotFound() : Ok(dto);
+                var hasAccess = await _facade.PaymentService.CanCustomerAccessPaymentAsync(
+                    key,
+                    userId
+                );
+                if (!hasAccess)
+                    return Forbid();
             }
 
-            var adminDto = await _facade.PaymentService.GetByIdAsync(key);
-            return adminDto is null ? NotFound() : Ok(adminDto);
+            return Ok(dto);
         }
 
         // POST /odata/Payments
-        // (OrderService đã tạo Payment Pending khi đặt hàng;
-        // cho phép Admin tạo thủ công nếu cần)
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Post([FromBody] PaymentCreateDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+
             var id = await _facade.PaymentService.CreateAsync(dto);
             var created = await _facade.PaymentService.GetByIdAsync(id);
             return Created(created);
@@ -105,6 +83,7 @@ namespace API.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+
             dto.PaymentId = key;
             var ok = await _facade.PaymentService.UpdateAsync(dto);
             return ok ? NoContent() : NotFound();
@@ -114,11 +93,8 @@ namespace API.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete([FromODataUri] int key)
         {
-            var entity = await _uow.PaymentRepository.GetByIdAsync(key);
-            if (entity == null)
-                return NotFound();
-            await _uow.PaymentRepository.DeleteAsync(entity);
-            return NoContent();
+            var ok = await _facade.PaymentService.DeleteAsync(key);
+            return ok ? NoContent() : NotFound();
         }
     }
 }

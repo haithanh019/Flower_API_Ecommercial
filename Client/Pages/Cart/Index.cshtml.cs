@@ -1,7 +1,7 @@
-﻿using Client.Models;
-using Client.Utils;
-using DataAccess.DTOs.CategoryDTOs;
-using DataAccess.DTOs.ProductDTOs;
+﻿using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
+using DataAccess.DTOs.CartDTOs;
 using DataAccess.Helper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -19,125 +19,154 @@ namespace Client.Pages.Cart
             _logger = logger;
         }
 
-        private const string CART_KEY = "CART";
+        // OData: resource theo controller hiện tại
+        private const string CART_RESOURCE = "Carts";
 
-        public List<CartItem> Items { get; set; } = new();
-        public decimal Total => Items.Sum(i => i.UnitPrice * i.Quantity);
+        public CartDto? Cart { get; set; }
         public string? ErrorMessage { get; set; }
         public string? SuccessMessage { get; set; }
 
-        public record CategoryOption(int Id, string Name);
+        private bool NotLoggedIn =>
+            string.IsNullOrWhiteSpace(HttpContext.Session.GetString("JWToken"));
 
-        public List<CategoryOption> Categories { get; set; } = new();
-
-        public string CategoryName(int id) =>
-            Categories.FirstOrDefault(x => x.Id == id)?.Name ?? $"#{id}";
-
-        public async Task OnGetAsync()
+        // GET /Cart
+        public async Task<IActionResult> OnGetAsync()
         {
-            await LoadCategoriesAsync();
-            Items = HttpContext.Session.GetObject<List<CartItem>>(CART_KEY) ?? new();
-        }
-
-        // Dùng ở trang Shop để thêm nhanh
-        public async Task<IActionResult> OnPostAddAsync(int productId, int qty = 1)
-        {
-            qty = Math.Max(1, qty);
-            try
+            // Chưa đăng nhập -> chuyển thẳng sang trang login
+            if (NotLoggedIn)
             {
-                var client = _http.CreateClient("odata");
-                var p = await client.GetFromJsonAsync<ProductDto>($"Products({productId})");
-                if (p == null || !p.IsActive)
-                    return BadRequest("Sản phẩm không khả dụng.");
+                _logger.LogInformation("[Cart] Not logged in -> redirect to login");
+                return Redirect("/Account/Login?returnUrl=/Cart");
+            }
 
-                var cart = HttpContext.Session.GetObject<List<CartItem>>(CART_KEY) ?? new();
-                var ex = cart.FirstOrDefault(x => x.ProductId == productId);
-                if (ex == null)
-                {
-                    cart.Add(
-                        new CartItem
-                        {
-                            ProductId = p.ProductId,
-                            ProductName = p.ProductName,
-                            UnitPrice = p.Price,
-                            Quantity = qty,
-                            CategoryId = p.CategoryId,
-                            ImageUrl = !string.IsNullOrWhiteSpace(p.ImageUrl)
-                                ? p.ImageUrl
-                                : p.ImageUrls?.FirstOrDefault(),
-                        }
-                    );
-                }
-                else
-                {
-                    ex.Quantity = Math.Min(999, ex.Quantity + qty);
-                }
-                HttpContext.Session.SetObject(CART_KEY, cart);
-                TempData["Success"] = "Đã thêm vào giỏ hàng.";
-                return RedirectToPage("/Cart/Index");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "[Cart] Add failed");
-                TempData["Error"] = "Không thể thêm vào giỏ.";
-                return RedirectToPage("/Cart/Index");
-            }
-        }
+            if (TempData.TryGetValue("Success", out var s))
+                SuccessMessage = s?.ToString();
+            if (TempData.TryGetValue("Error", out var e))
+                ErrorMessage = e?.ToString();
 
-        public async Task<IActionResult> OnPostUpdateQtyAsync(int productId, int qty)
-        {
-            await LoadCategoriesAsync();
-            var cart = HttpContext.Session.GetObject<List<CartItem>>(CART_KEY) ?? new();
-            var it = cart.FirstOrDefault(x => x.ProductId == productId);
-            if (it != null)
-            {
-                if (qty <= 0)
-                    cart.Remove(it);
-                else
-                    it.Quantity = Math.Min(999, qty);
-                HttpContext.Session.SetObject(CART_KEY, cart);
-                SuccessMessage = "Đã cập nhật số lượng.";
-            }
-            Items = cart;
+            Cart = await LoadCartAsync();
+            if (Cart is null)
+                ErrorMessage ??= "Không tải được giỏ hàng.";
+
             return Page();
         }
 
-        public async Task<IActionResult> OnPostRemoveAsync(int productId)
+        // POST /Cart?handler=UpdateQty
+        public async Task<IActionResult> OnPostUpdateQtyAsync(int cartItemId, int qty)
         {
-            await LoadCategoriesAsync();
-            var cart = HttpContext.Session.GetObject<List<CartItem>>(CART_KEY) ?? new();
-            cart.RemoveAll(x => x.ProductId == productId);
-            HttpContext.Session.SetObject(CART_KEY, cart);
-            Items = cart;
-            SuccessMessage = "Đã xoá sản phẩm.";
-            return Page();
-        }
+            if (NotLoggedIn)
+                return Redirect("/Account/Login?returnUrl=/Cart");
 
-        public async Task<IActionResult> OnPostClearAsync()
-        {
-            await LoadCategoriesAsync();
-            HttpContext.Session.Remove(CART_KEY);
-            Items = new();
-            SuccessMessage = "Đã xoá giỏ hàng.";
-            return Page();
-        }
-
-        private async Task LoadCategoriesAsync()
-        {
             var client = _http.CreateClient("odata");
             try
             {
-                var data = await client.GetFromJsonAsync<OWrapper<CategoryDto>>(
-                    "Categories?$select=CategoryId,CategoryName&$filter=IsActive eq true&$orderby=CategoryName"
-                );
-                Categories = (data?.Value ?? new List<CategoryDto>())
-                    .Select(x => new CategoryOption(x.CategoryId, x.CategoryName))
-                    .ToList();
+                var url = $"{CART_RESOURCE}(1)"; // key chỉ để khớp route OData
+                var body = new CartUpdateQtyRequest
+                {
+                    CartItemId = cartItemId,
+                    Quantity = Math.Max(0, qty), // 0 => xoá item theo service
+                };
+
+                _logger.LogInformation("[Cart] PUT {Url} body={@Body}", url, body);
+                var res = await client.PutAsJsonAsync(url, body);
+                _logger.LogInformation("[Cart] PUT status {Status}", (int)res.StatusCode);
+
+                if (res.StatusCode == HttpStatusCode.Unauthorized)
+                    return Redirect("/Account/Login?returnUrl=/Cart");
+
+                if (!res.IsSuccessStatusCode)
+                    TempData["Error"] = $"Cập nhật số lượng thất bại ({(int)res.StatusCode}).";
             }
-            catch
+            catch (Exception ex)
             {
-                Categories = new();
+                _logger.LogError(ex, "[Cart] UpdateQty failed");
+                TempData["Error"] = "Không thể cập nhật số lượng.";
             }
+            return RedirectToPage();
+        }
+
+        // POST /Cart?handler=Remove  (xoá một dòng -> set qty = 0)
+        public Task<IActionResult> OnPostRemoveAsync(int cartItemId) =>
+            OnPostUpdateQtyAsync(cartItemId, 0);
+
+        // POST /Cart?handler=Clear  (xoá toàn bộ)
+        public async Task<IActionResult> OnPostClearAsync()
+        {
+            if (NotLoggedIn)
+                return Redirect("/Account/Login?returnUrl=/Cart");
+
+            var client = _http.CreateClient("odata");
+            try
+            {
+                var url = $"{CART_RESOURCE}(1)";
+                _logger.LogInformation("[Cart] DELETE {Url}", url);
+                var res = await client.DeleteAsync(url);
+                _logger.LogInformation("[Cart] DELETE status {Status}", (int)res.StatusCode);
+
+                if (res.StatusCode == HttpStatusCode.Unauthorized)
+                    return Redirect("/Account/Login?returnUrl=/Cart");
+
+                if (!res.IsSuccessStatusCode)
+                    TempData["Error"] = $"Không thể xoá giỏ ({(int)res.StatusCode}).";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[Cart] Clear failed");
+                TempData["Error"] = "Không thể xoá giỏ hàng.";
+            }
+            return RedirectToPage();
+        }
+
+        // GET /Cart?handler=Count  (badge giỏ)
+        public async Task<IActionResult> OnGetCountAsync()
+        {
+            if (NotLoggedIn)
+                return new JsonResult(new { ok = false, count = 0 });
+
+            var dto = await LoadCartAsync();
+            return new JsonResult(new { ok = dto != null, count = dto?.ItemCount ?? 0 });
+        }
+
+        // ===== Helpers =====
+        private async Task<CartDto?> LoadCartAsync()
+        {
+            var client = _http.CreateClient("odata");
+
+            // BẮT BUỘC expand Items để OData serialize danh sách dòng giỏ
+            var url =
+                "Carts?"
+                + "$select=CartId,UserId,ItemCount,Subtotal,CreatedAt,UpdatedAt"
+                + "&$expand=Items("
+                + "$select=CartItemId,CartId,ProductId,ProductName,ImageUrl,Quantity,UnitPrice"
+                + ")";
+
+            _logger.LogInformation("[Cart] GET {Url}", client.BaseAddress + url);
+
+            var res = await client.GetAsync(url);
+            _logger.LogInformation("[Cart] GET status {Status}", (int)res.StatusCode);
+
+            if (!res.IsSuccessStatusCode)
+            {
+                ErrorMessage = res.StatusCode
+                    is HttpStatusCode.Unauthorized
+                        or HttpStatusCode.Forbidden
+                    ? "Bạn cần đăng nhập để xem giỏ hàng."
+                    : $"Không tải được giỏ hàng ({(int)res.StatusCode}).";
+                return null;
+            }
+
+            var raw = await res.Content.ReadAsStringAsync();
+            _logger.LogDebug("[Cart] Payload: {Raw}", raw);
+
+            var data = JsonSerializer.Deserialize<OWrapper<CartDto>>(
+                raw,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+            );
+
+            var dto = data?.Value?.FirstOrDefault();
+            _logger.LogInformation("[Cart] Loaded {Count} items", dto?.Items?.Count ?? -1);
+
+            return dto;
         }
     }
 }

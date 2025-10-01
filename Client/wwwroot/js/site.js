@@ -1,4 +1,12 @@
-﻿// Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
-
-// Write your JavaScript code.
+﻿// Update cart badge
+(function () {
+    const el = document.getElementById('cart-count');
+    if (!el) return;
+    fetch('/Cart?handler=Count', { credentials: 'same-origin' })
+        .then(r => r.json()).then(d => {
+            if (!d || !d.ok) return;
+            const n = parseInt(d.count || 0, 10);
+            el.textContent = n;
+            el.classList.toggle('d-none', n <= 0);
+        }).catch(() => { });
+})();

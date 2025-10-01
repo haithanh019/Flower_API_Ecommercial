@@ -107,5 +107,40 @@ namespace Services.Implements
             await _uow.PaymentRepository.UpdateAsync(p);
             return true;
         }
+
+        // Thêm vào PaymentService class
+        public async Task<IEnumerable<PaymentDto>> GetAllAsync() =>
+            await _uow
+                .PaymentRepository.Query()
+                .ProjectTo<PaymentDto>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+        public async Task<IEnumerable<PaymentDto>> GetByCustomerIdAsync(int customerId) =>
+            await _uow
+                .PaymentRepository.Query()
+                .Where(p => p.Order.CustomerId == customerId)
+                .ProjectTo<PaymentDto>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+        public async Task<bool> CanCustomerAccessPaymentAsync(int paymentId, int customerId)
+        {
+            var payment = await _uow
+                .PaymentRepository.Query()
+                .Where(p => p.PaymentId == paymentId)
+                .Include(p => p.Order)
+                .FirstOrDefaultAsync();
+
+            return payment?.Order.CustomerId == customerId;
+        }
+
+        public async Task<bool> DeleteAsync(int paymentId)
+        {
+            var entity = await _uow.PaymentRepository.GetByIdAsync(paymentId);
+            if (entity == null)
+                return false;
+
+            await _uow.PaymentRepository.DeleteAsync(entity);
+            return true;
+        }
     }
 }
