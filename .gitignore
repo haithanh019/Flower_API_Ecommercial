@@ -78,7 +78,7 @@ obj/
 *.app
 *.ipa
 *.dSYM/
-
+*.vs
 # Tệp cấu hình riêng tư
 appsettings.Development.json
 appsettings.Local.json
