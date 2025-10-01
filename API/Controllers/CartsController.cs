@@ -32,7 +32,7 @@ namespace API.Controllers
         [EnableQuery]
         public async Task<IActionResult> Get([FromODataUri] int key)
         {
-            return BadRequest("Use GET /odata/Carts to get your cart");
+            return await Task.FromResult(BadRequest("Use GET /odata/Carts to get your cart"));
         }
 
         // POST /odata/Carts - Add item to cart
