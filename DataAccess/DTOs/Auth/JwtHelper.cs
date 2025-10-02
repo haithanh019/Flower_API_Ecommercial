@@ -20,7 +20,7 @@ namespace DataAccess.DTOs.Auth
             var expires = DateTime.UtcNow.Add(
                 lifetime
                     ?? TimeSpan.FromMinutes(
-                        int.TryParse(config["Jwt:ExpiresMinutes"], out var m) ? m : 30
+                        int.TryParse(config["Jwt:Lifetime"], out var m) ? m : 30
                     )
             );
 
@@ -34,7 +34,7 @@ namespace DataAccess.DTOs.Auth
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]!));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:SecretKey"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
