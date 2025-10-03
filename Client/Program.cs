@@ -1,4 +1,4 @@
-using DataAccess.Auth;
+using DataAccess.DTOs.Auth;
 
 namespace Client
 {

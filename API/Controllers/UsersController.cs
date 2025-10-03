@@ -1,4 +1,4 @@
-﻿using DataAccess.Auth;
+﻿using DataAccess.DTOs.Auth;
 using DataAccess.DTOs.UserDTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,7 +19,6 @@ namespace API.Controllers
             _config = config;
         }
 
-        // POST /odata/Users
         [AllowAnonymous]
         public async Task<IActionResult> Post([FromBody] LoginDTO login)
         {

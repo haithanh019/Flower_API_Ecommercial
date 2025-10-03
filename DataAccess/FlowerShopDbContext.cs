@@ -15,6 +15,8 @@ public class FlowerShopDbContext : DbContext
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<Payment> Payments => Set<Payment>();
+    public DbSet<Cart> Carts => Set<Cart>();
+    public DbSet<CartItem> CartItems => Set<CartItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -110,6 +112,40 @@ public class FlowerShopDbContext : DbContext
             e.Property(p => p.Method).IsRequired();
             e.Property(p => p.Status).IsRequired();
             e.Property(p => p.PaymentDate).HasDefaultValueSql("GETDATE()");
+        });
+        // Cart
+        modelBuilder.Entity<Cart>(e =>
+        {
+            e.HasKey(x => x.CartId);
+            e.Property(x => x.UserId).IsRequired();
+
+            // 1–1 với User, mỗi user chỉ có 1 cart
+            e.HasOne(c => c.User)
+                .WithOne()
+                .HasForeignKey<Cart>(c => c.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            e.HasIndex(x => x.UserId).IsUnique();
+        });
+
+        // CartItem
+        modelBuilder.Entity<CartItem>(e =>
+        {
+            e.HasKey(x => x.CartItemId);
+            e.Property(x => x.UnitPrice).HasColumnType("decimal(18,2)");
+
+            e.HasOne(ci => ci.Cart)
+                .WithMany(c => c.CartItems)
+                .HasForeignKey(ci => ci.CartId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            e.HasOne(ci => ci.Product)
+                .WithMany()
+                .HasForeignKey(ci => ci.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Mỗi sản phẩm chỉ xuất hiện 1 lần trong cart
+            e.HasIndex(x => new { x.CartId, x.ProductId }).IsUnique();
         });
 
         base.OnModelCreating(modelBuilder);

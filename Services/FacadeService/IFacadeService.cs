@@ -9,5 +9,6 @@ namespace Services.FacadeService
         IUserService UserService { get; }
         ICategoryService CategoryService { get; }
         IPaymentService PaymentService { get; }
+        ICartService CartService { get; }
     }
 }

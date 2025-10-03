@@ -85,5 +85,78 @@ namespace Services.Implements
                 .Where(o => o.OrderId == orderId)
                 .ProjectTo<OrderDto>(_mapper.ConfigurationProvider)
                 .SingleOrDefaultAsync();
+
+        public async Task<IEnumerable<OrderDto>> GetAllAsync() =>
+            await _uow
+                .OrderRepository.Query()
+                .ProjectTo<OrderDto>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+        public async Task<IEnumerable<OrderDto>> GetOrdersByCustomerIdAsync(int customerId) =>
+            await _uow
+                .OrderRepository.Query()
+                .Where(o => o.CustomerId == customerId)
+                .ProjectTo<OrderDto>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+        // THÊM METHOD MỚI: UpdateAsync
+        public async Task<bool> UpdateAsync(int orderId, OrderUpdateDto dto)
+        {
+            var order = await _uow.OrderRepository.GetByIdAsync(orderId);
+            if (order == null)
+                return false;
+
+            // Chỉ cho phép update một số field nhất định
+            order.Status = dto.Status;
+
+            if (!string.IsNullOrEmpty(dto.ShippingAddress))
+                order.ShippingAddress = dto.ShippingAddress;
+
+            if (!string.IsNullOrEmpty(dto.CustomerNote))
+                order.CustomerNote = dto.CustomerNote;
+
+            order.UpdatedAt = DateTime.UtcNow;
+
+            await _uow.OrderRepository.UpdateAsync(order);
+            return true;
+        }
+
+        // THÊM METHOD MỚI: DeleteAsync (Soft delete hoặc cancel order)
+        public async Task<bool> DeleteAsync(int orderId)
+        {
+            var order = await _uow
+                .OrderRepository.Query()
+                .Include(o => o.Items)
+                .ThenInclude(oi => oi.Product)
+                .FirstOrDefaultAsync(o => o.OrderId == orderId);
+
+            if (order == null)
+                return false;
+
+            // Chỉ cho phép delete/cancel nếu order chưa được giao
+            if (order.Status == OrderStatus.Delivered || order.Status == OrderStatus.Cancelled)
+            {
+                throw new InvalidOperationException(
+                    "Cannot cancel delivered or already cancelled order"
+                );
+            }
+
+            // Hoàn lại stock nếu cancel order
+            if (order.Status == OrderStatus.Pending || order.Status == OrderStatus.Processing)
+            {
+                foreach (var item in order.Items)
+                {
+                    item.Product.StockQuantity += item.Quantity;
+                    await _uow.ProductRepository.UpdateAsync(item.Product);
+                }
+            }
+
+            // Soft delete - đánh dấu là cancelled thay vì xóa hẳn
+            order.Status = OrderStatus.Cancelled;
+            order.UpdatedAt = DateTime.UtcNow;
+
+            await _uow.OrderRepository.UpdateAsync(order);
+            return true;
+        }
     }
 }
