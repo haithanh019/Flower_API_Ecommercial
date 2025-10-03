@@ -14,6 +14,8 @@ namespace DataAccess.UnitOfWork
         public ICategoryRepository CategoryRepository { get; }
         public IPaymentRepository PaymentRepository { get; }
         public IProductImageRepository ProductImageRepository { get; private set; }
+        public ICartRepository CartRepository { get; }
+        public ICartItemRepository CartItemRepository { get; }
 
         public UnitOfWork(FlowerShopDbContext db)
         {
@@ -24,6 +26,8 @@ namespace DataAccess.UnitOfWork
             CategoryRepository = new CategoryRepository(_db);
             PaymentRepository = new PaymentRepository(_db);
             ProductImageRepository = new ProductImageRepository(_db);
+            CartRepository = new CartRepository(_db);
+            CartItemRepository = new CartItemRepository(_db);
         }
 
         public Task SaveAsync() => _db.SaveChangesAsync();

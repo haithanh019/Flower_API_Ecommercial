@@ -1,7 +1,8 @@
-using System.IdentityModel.Tokens.Jwt;
+﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using DataAccess;
+using DataAccess.DTOs.CartDTOs;
 using DataAccess.DTOs.CategoryDTOs;
 using DataAccess.DTOs.OrderDTOs;
 using DataAccess.DTOs.PaymentDTOs;
@@ -40,6 +41,8 @@ namespace API
                     modelBuilder.EntitySet<OrderDto>("Orders");
                     modelBuilder.EntitySet<CategoryDto>("Categories");
                     modelBuilder.EntitySet<PaymentDto>("Payments");
+                    modelBuilder.EntitySet<CartDto>("Carts");
+                    modelBuilder.EntitySet<CartItemDto>("CartItems");
                     opt.AddRouteComponents("odata", modelBuilder.GetEdmModel())
                         .Select()
                         .Filter()
@@ -68,7 +71,7 @@ namespace API
                         ValidIssuer = builder.Configuration["Jwt:Issuer"],
                         ValidAudience = builder.Configuration["Jwt:Audience"],
                         IssuerSigningKey = new SymmetricSecurityKey(
-                            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
+                            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"]!)
                         ),
                         RoleClaimType = ClaimTypes.Role,
                         NameClaimType = ClaimTypes.NameIdentifier,
