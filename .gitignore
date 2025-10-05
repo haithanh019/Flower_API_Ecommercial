@@ -1,63 +1,64 @@
-# Tệp thư mục hệ thống
-bin/
-obj/
-*.user
-*.suo
-*.log
-*.ncb
-*.sdf
-*.cache
-*.env
-.vscode/
-.idea/
-*.code-workspace
+## Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
 
-# Tệp biên dịch
-*.dll
-*.pdb
-*.exe
-*.out
-*.app
-*.ipa
-*.dSYM/
-
-# Tệp cấu hình riêng tư
-appsettings.Development.json
-appsettings.Local.json
-secrets.json
-appsettings.json
-# Dữ liệu tạm thời và thư mục build
-*.pid
-*.lock
-*.cache
-*.temp
-*.TMP
-*.bak
-logs/
-temp/
-node_modules/
-dist/
-coverage/
-.env
-.env.local
-.env.development
-.env.production
-.env.test
-
-# Visual Studio Code workspace
-.vscode/
-*.code-workspace
-
-# Các thư mục build của .NET Core
+## .NET Core
 project.lock.json
-project.assets.json
-logs/
-.lldb/
-*.sqlite
-*.sqlite3
+project.fragment.lock.json
+artifacts/
 
-# Tệp từ Resharper & Rider
-*.sln.docstates
-.idea/
+## ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+## NuGet
+*.nupkg
+*.snupkg
+packages/
+
+## Coverage & Logs
+CodeCoverage/
+*.binlog
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+## NUnit
+*.VisualState.xml
+TestResult.xml
+nunit-*.xml
+
+## Rider / VS / IDE cache
 .vs/
-/appsettings.json
+*.db
+*.db-shm
+*.db-wal
+*.vsidx
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+## Resharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+## Others
+~$*
+*~
+*.swp
+*.tmp
+*.temp
+*.log
